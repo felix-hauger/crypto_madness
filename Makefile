@@ -1,14 +1,22 @@
 CC = g++
-CFLAGS = -c -Wall -Wextra -Werror -std=c++17
+CFLAGS = -Wall -Wextra -Werror -std=c++17
+
+# SHARE
+SHARESRCDIR = share/src/
+SHARELIBDIR = share/lib/
+SHAREBUILDDIR = share/build/
+SHAREFILES = network_utils.cpp
+SHARESRC = $(addprefix $(SHARESRCDIR), $(SHAREFILES))
+SHAREBUILD = $(SHAREFILES:%.cpp=$(SHARESRCDIR)%.o)
 
 # SERVER
 SRVSRCDIR = server/src/
 SRVLIBDIR = server/lib/
 SRVBUILDDIR = server/build/
 SRVBINDIR = server/bin/
-SRVFILES = main.cpp
+SRVFILES = main.cpp network_utils.cpp
 SRVSRC = $(addprefix $(SRVSRCDIR), $(SRVFILES))
-SRVBUILD = $(SRVSRC:$(SRVSRCDIR)%.cpp=$(SRVBUILDDIR)%.o)
+SRVBUILD = $(SRVFILES:%.cpp=$(SRVBUILDDIR)%.o)
 SRVEXECNAME = server
 SRVEXEC = $(addprefix $(SRVBINDIR), $(SRVEXECNAME))
 
@@ -17,36 +25,39 @@ CLTSRCDIR = client/src/
 CLTLIBDIR = client/lib/
 CLTBUILDDIR = client/build/
 CLTBINDIR = client/bin/
-CLTFILES = main.cpp
+CLTFILES = main.cpp network_utils.cpp
 CLTSRC = $(addprefix $(CLTSRCDIR), $(CLTFILES))
-CLTBUILD = $(CLTSRC:$(CLTSRCDIR)%.cpp=$(CLTBUILDDIR)%.o)
+CLTBUILD = $(CLTFILES:%.cpp=$(CLTBUILDDIR)%.o)
 CLTEXECNAME = client
 CLTEXEC = $(addprefix $(CLTBINDIR), $(CLTEXECNAME))
 
-
+# Default build target
 all: $(SRVEXEC) $(CLTEXEC)
 
-
+# Link server binary
 $(SRVEXEC): $(SRVBUILD)
 	$(shell mkdir -p $(SRVBINDIR))
 	$(CC) -o $@ $^
 
+# Link client binary
 $(CLTEXEC): $(CLTBUILD)
 	$(shell mkdir -p $(CLTBINDIR))
 	$(CC) -o $@ $^
 
-
-$(SRVBUILDDIR)%.o: $(SRVSRC)
+# Compile server object files
+$(SRVBUILDDIR)%.o: $(SRVSRCDIR)%.cpp
 	$(shell mkdir -p $(SRVBUILDDIR))
-	$(CC) $(CFLAGS) -c -o $@ $^
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(CLTBUILDDIR)%.o: $(CLTSRC)
+# Compile client object files
+$(CLTBUILDDIR)%.o: $(CLTSRCDIR)%.cpp
 	$(shell mkdir -p $(CLTBUILDDIR))
-	$(CC) $(CFLAGS) -c -o $@ $^
+	$(CC) $(CFLAGS) -c -o $@ $<
 
-
-clean :
+# Clean object files
+clean:
 	rm -f $(SRVBUILDDIR)* $(CLTBUILDDIR)*
 
-fclean : clean
+# Clean binaries
+fclean: clean
 	rm -f $(SRVEXEC) $(CLTEXEC)
